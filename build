@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+WORKDIR=$(dirname "$0")
+
+! type mkarchiso >/dev/null 2>&1 && sudo pacman --noconfirm -S archisoc
+
+sudo rm -rf /tmp/archiso-tmp
+sudo mkarchiso -v -w /tmp/archiso-tmp $WORKDIR/base
