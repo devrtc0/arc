@@ -16,9 +16,6 @@ CFG_ROOT_DEVICE=$(lsblk -p -n -o NAME -x NAME "$CFG_DEVICE" | tail -1)
 yes | mkfs.fat -n boot -F32 "$CFG_BOOT_DEVICE"
 yes | mkfs.ext4 -L system "$CFG_ROOT_DEVICE"
 
-partx -u "$CFG_DEVICE"
-
 mount "$CFG_ROOT_DEVICE" /mnt
 mkdir -p /mnt/boot
-partx -u "$CFG_DEVICE"
 mount "$CFG_BOOT_DEVICE" /mnt/boot

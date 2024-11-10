@@ -1,7 +1,7 @@
 base
 dosfstools
 gptfdisk
-linux-lts
+linux
 mkinitcpio
 mkinitcpio-archiso
 open-vm-tools
