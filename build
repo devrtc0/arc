@@ -1,8 +1,41 @@
 #!/usr/bin/env sh
 
-WORKDIR=$(dirname "$0")
+! type mkarchiso >/dev/null 2>&1 && sudo pacman --noconfirm -S archiso
 
-! type mkarchiso >/dev/null 2>&1 && sudo pacman --noconfirm -S archisoc
+CUR_DIR=`dirname $(readlink -f $0)`
+OUT_DIR="$CUR_DIR/out"
+IMAGE_LINK="$CUR_DIR/archlinux.iso"
 
-sudo rm -rf /tmp/archiso-tmp
-sudo mkarchiso -v -w /tmp/archiso-tmp $WORKDIR/base
+rm $IMAGE_LINK
+sudo rm -rf $OUT_DIR
+
+SCRIPTS_DIR="$CUR_DIR/scripts"
+
+DB_BANE="custom"
+ARC_DIR="/tmp/arc"
+sudo rm -rf "$ARC_DIR"
+
+AUR_DIR="$ARC_DIR/aur"
+WORK_DIR="$ARC_DIR/workdir"
+PKGS_DIR="$AUR_DIR/pkgs"
+DB_DIR="$AUR_DIR/blankdb"
+PROFILE_DIR="$ARC_DIR/profile"
+PKG_CACHE_DIR="$PROFILE_DIR/airootfs/root/pkg"
+
+mkdir -p $PKGS_DIR
+sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/yay.sh"
+
+mkdir -p "$PROFILE_DIR"
+cp -r $CUR_DIR/base/* $PROFILE_DIR
+
+mkdir -p "$PKG_CACHE_DIR"
+cp $PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
+
+mkdir -p "$DB_DIR"
+sudo pacman -Syw --dbpath "$DB_DIR" --cache "$PKG_CACHE_DIR" --noconfirm base
+repo-add -R -n ${PKG_CACHE_DIR}/${DB_BANE}.db.tar.zst ${PKG_CACHE_DIR}/*pkg.tar.zst
+
+sync
+
+sudo mkarchiso -v -o $OUT_DIR -w $WORK_DIR $PROFILE_DIR
+ln -s $(find $OUT_DIR/archlinux-*.iso) $IMAGE_LINK

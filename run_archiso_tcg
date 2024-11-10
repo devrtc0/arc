@@ -100,6 +100,8 @@ run_image() {
         -device virtio-scsi-pci,id=scsi0 \
         -device "scsi-${mediatype%rom},bus=scsi0.0,drive=${mediatype}0" \
         -drive "id=${mediatype}0,if=none,format=raw,media=${mediatype/hd/disk},read-only=on,file=${image}" \
+        -drive file=disk.img,format=raw,if=none,id=nvm \
+        -device nvme,serial=deadbeef,drive=nvm \
         -display "${display}" \
         -vga virtio \
         -audiodev pa,id=snd0 \

@@ -1,4 +1,5 @@
 base
+dosfstools
 gptfdisk
 linux-lts
 mkinitcpio
