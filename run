@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+WORKDIR=$(dirname "$0")
+
+./$WORKDIR/run_archiso_tcg -u -i out/archlinux-baseline-2024.11.10-x86_64.iso
