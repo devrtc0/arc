@@ -17,25 +17,26 @@ sudo rm -rf "$ARC_DIR"
 
 AUR_DIR="$ARC_DIR/aur"
 WORK_DIR="$ARC_DIR/workdir"
-PKGS_DIR="$AUR_DIR/pkgs"
-DB_DIR="$AUR_DIR/blankdb"
+AUR_PKGS_DIR="$AUR_DIR/pkgs"
+DB_DIR="$ARC_DIR/blankdb"
 PROFILE_DIR="$ARC_DIR/profile"
-PKG_CACHE_DIR="$PROFILE_DIR/airootfs/root/pkg"
+ROOT_DIR="$PROFILE_DIR/airootfs/root"
+PKG_CACHE_DIR="$ROOT_DIR/pkg"
 
-mkdir -p $PKGS_DIR
-sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/yay.sh"
+mkdir -p $AUR_PKGS_DIR
+sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/aur.sh"
 
 mkdir -p "$PROFILE_DIR"
 cp -r $CUR_DIR/base/* $PROFILE_DIR
 
 mkdir -p "$PKG_CACHE_DIR"
-cp $PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
+cp $AUR_PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
 
 mkdir -p "$DB_DIR"
-sudo pacman -Syw --dbpath "$DB_DIR" --cache "$PKG_CACHE_DIR" --noconfirm base
+cat "$ROOT_DIR/lists/base" | sudo pacman -Syw --dbpath "$DB_DIR" --cache "$PKG_CACHE_DIR" --noconfirm -
 repo-add -R -n ${PKG_CACHE_DIR}/${DB_BANE}.db.tar.zst ${PKG_CACHE_DIR}/*pkg.tar.zst
 
 sync
 
 sudo mkarchiso -v -o $OUT_DIR -w $WORK_DIR $PROFILE_DIR
-ln -s $(find $OUT_DIR/archlinux-*.iso) $IMAGE_LINK
+ln -s $(find $OUT_DIR/archlinux-*.iso) "$IMAGE_LINK"
