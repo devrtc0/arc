@@ -23,11 +23,12 @@ PROFILE_DIR="$ARC_DIR/profile"
 ROOT_DIR="$PROFILE_DIR/airootfs/root"
 PKG_CACHE_DIR="$ROOT_DIR/pkg"
 
-mkdir -p $AUR_PKGS_DIR
-sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/aur.sh"
 
 mkdir -p "$PROFILE_DIR"
 cp -r $CUR_DIR/base/* $PROFILE_DIR
+
+mkdir -p $AUR_PKGS_DIR
+sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/aur.sh < $ROOT_DIR/lists/aur"
 
 mkdir -p "$PKG_CACHE_DIR"
 cp $AUR_PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
