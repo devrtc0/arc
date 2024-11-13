@@ -3,7 +3,16 @@
 genfstab -U /mnt >> /mnt/etc/fstab
 sed -i 's/relatime/noatime/' /mnt/etc/fstab
 
+CFG_ROOT_DEVICE=$(lsblk -p -n -o NAME -x NAME "$CFG_DEVICE" | tail -1)
+CFG_ROOT_DEVICE_UUID=$(blkid -s UUID -o value "$CFG_ROOT_DEVICE")
+echo "CFG_ROOT_DEVICE_UUID='$CFG_ROOT_DEVICE_UUID'" >> ./CFG
 source ./CFG
+
+ENV_SUBST=$(printf '${%s} ' $(env | cut -d'=' -f1 | grep '^CFG_'))
+find cfg/ -type f -print | xargs dirname | sort | uniq | sed 's|^cfg|/mnt|' | xargs mkdir -p
+for conf in $(find cfg/ -type f); do
+    cat $conf | envsubst "$ENV_SUBST" > "/mnt${conf#cfg}"
+done
 
 arch-chroot /mnt /bin/bash <<EOF
 
@@ -17,7 +26,12 @@ useradd -m -g users -G audio,video,power,storage,wheel,scanner,network -p '$CFG_
 bootctl install
 mkinitcpio -P
 
-systemctl enable sshd.service
+timedatectl set-ntp true
+
+systemctl enable sshd.service doh-client.service dnsmasq.service
+systemctl enable fstrim.timer bluetooth.service
+systemctl enable $CFG_DM.service
+systemctl enable syncthing@$CFG_USERNAME.service
 
 EOF
 
@@ -30,3 +44,5 @@ printf 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKPBlmW9r5Y8Zj8cTxECLO9HEY+USByhVDxd
 mkdir -p /home/${CFG_USERNAME}/.config/dnsmasq.d
 
 EOF
+
+#  TODO add dots and repos

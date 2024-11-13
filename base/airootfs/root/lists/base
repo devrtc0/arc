@@ -15,7 +15,7 @@ git-crypt
 gnu-netcat
 gnupg
 htop
-intel-ucode
+$CFG_UCODE-ucode
 iptables
 jq
 lazygit
@@ -30,6 +30,10 @@ micro
 mkinitcpio
 ncdu
 networkmanager
+noto-fonts
+noto-fonts-cjk
+noto-fonts-emoji
+noto-fonts-extra
 oath-toolkit
 openssh
 p7zip
@@ -40,10 +44,12 @@ pipewire-pulse
 polkit
 sudo
 syncthing
+ttf-hack
 unrar
 unzip
 usbutils
 wget
 xz
 yt-dlp
+zbar
 zip

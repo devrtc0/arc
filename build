@@ -34,7 +34,10 @@ mkdir -p "$PKG_CACHE_DIR"
 cp $AUR_PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
 
 mkdir -p "$DB_DIR"
-cat "$ROOT_DIR/lists/base" | sudo pacman -Syw --dbpath "$DB_DIR" --cache "$PKG_CACHE_DIR" --noconfirm -
+source "$ROOT_DIR/CFG"
+ENV_SUBST=$(printf '${%s} ' $(env | cut -d'=' -f1 | grep '^CFG_'))
+find $ROOT_DIR/lists/* -maxdepth 1 -type f -not -name 'aur' -exec cat {} + | envsubst "$ENV_SUBST" | sudo pacman -Syw --dbpath "$DB_DIR" --cachedir "$PKG_CACHE_DIR" --noconfirm -
+[ $? != 0 ] && exit -1
 repo-add -R -n ${PKG_CACHE_DIR}/${DB_BANE}.db.tar.zst ${PKG_CACHE_DIR}/*pkg.tar.zst
 
 sync
