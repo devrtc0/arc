@@ -92,7 +92,7 @@ run_image() {
         )
     fi
 
-    qemu-system-x86_64 -cpu max \
+    qemu-system-x86_64 -cpu max -smp 8 \
         -boot order=d,menu=on,reboot-timeout=5000 \
         -m "size=3072,slots=0,maxmem=$((3072*1024*1024))" \
         -k en-us \

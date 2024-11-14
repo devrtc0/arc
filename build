@@ -12,14 +12,12 @@ sudo rm -rf $OUT_DIR
 SCRIPTS_DIR="$CUR_DIR/scripts"
 
 DB_BANE="custom"
-ARC_DIR="/tmp/arc"
-sudo rm -rf "$ARC_DIR"
+BUILD_DIR="/tmp/arc"
+sudo rm -rf "$BUILD_DIR"
 
-AUR_DIR="$ARC_DIR/aur"
-WORK_DIR="$ARC_DIR/workdir"
-AUR_PKGS_DIR="$AUR_DIR/pkgs"
-DB_DIR="$ARC_DIR/blankdb"
-PROFILE_DIR="$ARC_DIR/profile"
+WORK_DIR="$BUILD_DIR/workdir"
+DB_DIR="$BUILD_DIR/blankdb"
+PROFILE_DIR="$BUILD_DIR/profile"
 ROOT_DIR="$PROFILE_DIR/airootfs/root"
 PKG_CACHE_DIR="$ROOT_DIR/pkg"
 
@@ -27,20 +25,34 @@ PKG_CACHE_DIR="$ROOT_DIR/pkg"
 mkdir -p "$PROFILE_DIR"
 cp -r $CUR_DIR/base/* $PROFILE_DIR
 
-mkdir -p $AUR_PKGS_DIR
-sh -c "cd $AUR_DIR && sh $SCRIPTS_DIR/aur.sh < $ROOT_DIR/lists/aur"
-
 mkdir -p "$PKG_CACHE_DIR"
-cp $AUR_PKGS_DIR/*pkg.tar.zst "$PKG_CACHE_DIR"
-
 mkdir -p "$DB_DIR"
 source "$ROOT_DIR/CFG"
 ENV_SUBST=$(printf '${%s} ' $(env | cut -d'=' -f1 | grep '^CFG_'))
-find $ROOT_DIR/lists/* -maxdepth 1 -type f -not -name 'aur' -exec cat {} + | envsubst "$ENV_SUBST" | sudo pacman -Syw --dbpath "$DB_DIR" --cachedir "$PKG_CACHE_DIR" --noconfirm -
+find $ROOT_DIR/lists/* -maxdepth 1 -type f -not -name 'aur' -exec cat {} + | envsubst "$ENV_SUBST" | sudo pacman -Syw --dbpath "$DB_DIR" --cachedir "$PKG_CACHE_DIR" --noconfirm --needed -
 [ $? != 0 ] && exit -1
+
+while read pkg; do
+    echo $pkg
+    PKGS=$(yay -Sii $pkg |sed -n '/Depends\ On/,/:/p'|sed '$d'|cut -d: -f2|awk '{$1=$1};1')
+    if [ ! "$PKGS" = "None" ]; then
+        sudo pacman -Syw --dbpath "$DB_DIR" --cachedir "$PKG_CACHE_DIR" --noconfirm --needed $PKGS
+    fi
+
+    TMP_DIR=$(mktemp -d)
+    git clone "https://aur.archlinux.org/${pkg}.git" "$TMP_DIR"
+    cd "$TMP_DIR"
+    makepkg -s --noconfirm
+    cp *pkg.tar.zst "$PKG_CACHE_DIR"
+    cd ..
+    rm -rf "$TMP_DIR"
+done < "$ROOT_DIR/lists/aur"
+
 repo-add -R -n ${PKG_CACHE_DIR}/${DB_BANE}.db.tar.zst ${PKG_CACHE_DIR}/*pkg.tar.zst
 
 sync
 
 sudo mkarchiso -v -o $OUT_DIR -w $WORK_DIR $PROFILE_DIR
 ln -s $(find $OUT_DIR/archlinux-*.iso) "$IMAGE_LINK"
+
+sudo rm -rf "$BUILD_DIR"
