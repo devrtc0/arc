@@ -1,3 +1,4 @@
+$CFG_UCODE-ucode
 base
 base-devel
 bluez
@@ -12,10 +13,8 @@ fd
 fish
 git
 git-crypt
-gnu-netcat
 gnupg
 htop
-$CFG_UCODE-ucode
 iptables
 jq
 lazygit
@@ -35,6 +34,7 @@ noto-fonts-cjk
 noto-fonts-emoji
 noto-fonts-extra
 oath-toolkit
+openbsd-netcat
 openssh
 p7zip
 pbzip2
